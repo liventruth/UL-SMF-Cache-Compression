@@ -31,16 +31,24 @@ The **Unified Latent-State Memory Fabric (UL-SMF)** is a hardware-software co-de
 
 ---
 
-## Quickstart (2-Line Integration)
+## Quickstart (Universal Integration)
 
-UL-SMF monkey-patches directly into standard PyTorch attention modules (Hugging Face Transformers, vLLM, etc.):
+UL-SMF dynamically maps **any** model hidden dimension (Mistral, Llama, Qwen, etc.) on-the-fly using orthogonal projection:
 
 ```python
 import torch
-from ul_smf import GLRPVersion2Bridge, UL_SMF_Interceptor
+from ul_smf import UniversalLatentBridge
 
-# 1. Initialize the Latent Bridge
-bridge = GLRPVersion2Bridge(input_dim=3072, latent_dim=16).to("cuda")
+# 1. Load your compiled Aegis-KV oracle core binary
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+oracle_core = torch.jit.load("aegis_kv_oracle_core.pt", map_location=device)
+oracle_core.eval()
 
-# 2. Intercept and Compress the Attention Layer
-model.model.layers[0].self_attn = UL_SMF_Interceptor(model.model.layers[0].self_attn, bridge)
+# 2. Wrap it with the Universal Dynamic Bridge (auto-adapts to any model size)
+ul_smf_bridge = UniversalLatentBridge(core_module=oracle_core, core_dim=3072).to(device)
+
+# 3. Seamlessly compress any model hidden dimension (e.g., 4096 for Llama/Qwen)
+kv_cache_tensor = torch.randn(1, 32, 4096, device=device)
+reconstructed_cache, compressed_latents = ul_smf_bridge(kv_cache_tensor)
+
+print(f"Compressed down to latent space: {compressed_latents.shape}")
