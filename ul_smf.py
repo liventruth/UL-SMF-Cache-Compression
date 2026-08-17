@@ -16,11 +16,13 @@ class UniversalLatentBridge(nn.Module):
             self.in_proj = nn.Identity()
             self.out_proj = nn.Identity()
         else:
-            self.in_proj = nn.Linear(in_dim, self.core_dim, bias=False).to(device=device, dtype=dtype)
-            self.out_proj = nn.Linear(self.core_dim, in_dim, bias=False).to(device=device, dtype=dtype)
-            nn.init.orthogonal_(self.in_proj.weight)
+            in_layer = nn.Linear(in_dim, self.core_dim, bias=False).to(device=device, dtype=torch.float32)
+            out_layer = nn.Linear(self.core_dim, in_dim, bias=False).to(device=device, dtype=torch.float32)
+            nn.init.orthogonal_(in_layer.weight)
             with torch.no_grad():
-                self.out_proj.weight.copy_(self.in_proj.weight.T)
+                out_layer.weight.copy_(in_layer.weight.T)
+            self.in_proj = in_layer.to(dtype=dtype)
+            self.out_proj = out_layer.to(dtype=dtype)
         self.active_dim = in_dim
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -33,3 +35,13 @@ class UniversalLatentBridge(nn.Module):
         reconstructed_core, latents = self.core_module(x_core)
         reconstructed = self.out_proj(reconstructed_core) if not isinstance(self.out_proj, nn.Identity) else reconstructed_core
         return reconstructed.view(original_shape), latents
+
+class UL_SMF_Interceptor(nn.Module):
+    def __init__(self, original_module: nn.Module, bridge: UniversalLatentBridge):
+        super().__init__()
+        self.original_module = original_module
+        self.bridge = bridge
+
+    def forward(self, *args, **kwargs):
+        output = self.original_module(*args, **kwargs)
+        return output
