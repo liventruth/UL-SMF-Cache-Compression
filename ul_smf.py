@@ -1,13 +1,9 @@
+
 import torch
 import torch.nn as nn
 from typing import Tuple, Optional
 
 class UniversalLatentBridge(nn.Module):
-    """
-    Universal Latent-State Memory Bridge.
-    Automatically aligns arbitrary incoming tensor dimensions to the Oracle's 
-    core manifold using orthogonal initialization.
-    """
     def __init__(self, core_module: nn.Module, core_dim: int = 128):
         super().__init__()
         self.core_module = core_module
@@ -46,16 +42,11 @@ class UniversalLatentBridge(nn.Module):
 
 
 class UL_SMF_Interceptor(nn.Module):
-    """
-    UL-SMF Attention Interceptor.
-    Slices incoming KV cache tensors by 128-dim attention heads to prevent 
-    cross-token semantic bleed and routes them through the UniversalLatentBridge.
-    """
     def __init__(self, original_attention: nn.Module, bridge: UniversalLatentBridge):
         super().__init__()
         self.original_attn = original_attention
         self.bridge = bridge
-        self.head_dim = 128  # Universal attention head standard
+        self.head_dim = 128
 
         if hasattr(original_attention, 'config'):
             self.config = original_attention.config
@@ -63,14 +54,11 @@ class UL_SMF_Interceptor(nn.Module):
     def forward(self, hidden_states, *args, **kwargs):
         attn_outputs = self.original_attn(hidden_states, *args, **kwargs)
 
-        # Intercept the KV cache tuple if present
         if len(attn_outputs) > 1 and attn_outputs[1] is not None:
             k_cache, v_cache = attn_outputs[1]
-            
             original_shape = k_cache.shape
             original_dtype = k_cache.dtype
             
-            # Reshape strictly by attention heads to preserve token boundaries
             flat_heads = k_cache.reshape(-1, self.head_dim).to(torch.float32)
             reconstructed_heads, _ = self.bridge(flat_heads)
             
