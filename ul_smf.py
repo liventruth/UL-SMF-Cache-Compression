@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 from typing import Tuple, Optional
@@ -42,14 +41,24 @@ class UniversalLatentBridge(nn.Module):
 
 
 class UL_SMF_Interceptor(nn.Module):
+    """
+    Model-Agnostic UL-SMF Attention Interceptor.
+    Automatically detects the model's native attention head dimension 
+    to prevent cross-token semantic bleed across any architecture.
+    """
     def __init__(self, original_attention: nn.Module, bridge: UniversalLatentBridge):
         super().__init__()
         self.original_attn = original_attention
         self.bridge = bridge
-        self.head_dim = 128
+        self.head_dim = 128  # Default fallback
 
         if hasattr(original_attention, 'config'):
             self.config = original_attention.config
+            detected_dim = getattr(self.config, 'head_dim', None)
+            if detected_dim is None and hasattr(self.config, 'hidden_size') and hasattr(self.config, 'num_attention_heads'):
+                detected_dim = self.config.hidden_size // self.config.num_attention_heads
+            if detected_dim is not None:
+                self.head_dim = detected_dim
 
     def forward(self, hidden_states, *args, **kwargs):
         attn_outputs = self.original_attn(hidden_states, *args, **kwargs)
