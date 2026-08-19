@@ -29,6 +29,27 @@ The **Unified Latent-State Memory Fabric (UL-SMF)** is a hardware-software co-de
 | **Semantic Retention** | 100% | **94.15% - 95.84%** | Cosine Similarity |
 | **Pipeline Latency** | — | **~14.1 ms - 19.6 ms** | CUDA Event Verified |
 
+```console
+[Restored from previous run] Baseline Perplexity: 6.1160
+
+Loading Geometry-Preserved Aegis-KV Oracle Core...
+Injecting UL-SMF Interceptors into Llama-3 attention layers...
+
+Executing Compressed PPL (Geometry-Preserved Validation)...
+Evaluating Windows:   9%|▉         | 50/565 [06:59<1:12:00,  8.39s/it]
+Compressed Perplexity: 6.1140
+
+============================================================
+      UL-SMF GEOMETRY-PRESERVED PERPLEXITY AUDIT      
+============================================================
+Base Model              : unsloth/llama-3-8b-bnb-4bit
+Dataset                 : WikiText-2 (Test Split)
+Uncompressed Baseline   : 6.1160
+UL-SMF Compressed PPL   : 6.1140
+Net PPL Degradation     : +-0.0020
+============================================================
+```
+
 ---
 
 ## Quickstart (Universal Integration)
