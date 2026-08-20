@@ -9,6 +9,17 @@ The **Unified Latent-State Memory Fabric (UL-SMF)** is a hardware-software co-de
 
 ---
 
+### ⚠️ Enterprise Core Binary Notice
+
+While the overarching orchestration framework and interfaces are open-source (AGPLv3), the full production closed-loop pipeline requires the compiled **Aegis-KV Oracle Core Binary** (`aegis_kv_oracle_core.pt`) for high-performance tensor compression.
+
+* **Open-Source Evaluation:** The quickstart script defines the exact structural pipeline and data flow, but local execution relies on a licensed core binary. 
+* **Commercial Deployments:** Commercial enterprise license holders receive the fully optimized `aegis_kv_oracle_core.pt` data package, full integration support, and zero-copy VRAM routing capabilities.
+
+**For enterprise evaluation builds and licensing inquiries, contact:** [inquiries@lawrencearchitectures.com](mailto:inquiries@lawrencearchitectures.com)
+
+---
+
 ## ⚠️ Enterprise & Commercial Licensing Notice
 
 **UL-SMF is dual-licensed:**
