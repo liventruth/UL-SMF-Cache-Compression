@@ -61,18 +61,32 @@ class UL_SMF_Interceptor(nn.Module):
                 self.head_dim = detected_dim
 
     def forward(self, hidden_states, *args, **kwargs):
+        # 1. Execute original attention
         attn_outputs = self.original_attn(hidden_states, *args, **kwargs)
 
-        if len(attn_outputs) > 1 and attn_outputs[1] is not None:
-            k_cache, v_cache = attn_outputs[1]
-            original_shape = k_cache.shape
-            original_dtype = k_cache.dtype
+        # 2. In HF, past_key_value is at index 2: (attn_output, attn_weights, past_key_value)
+        if len(attn_outputs) > 2 and attn_outputs[2] is not None:
+            past_kv = attn_outputs[2]
             
-            flat_heads = k_cache.reshape(-1, self.head_dim).to(torch.float32)
-            reconstructed_heads, _ = self.bridge(flat_heads)
-            
-            compressed_keys = reconstructed_heads.to(original_dtype).reshape(original_shape)
-            compressed_kv = (compressed_keys, v_cache)
-            attn_outputs = (attn_outputs[0], compressed_kv) + attn_outputs[2:]
-            
+            # Ensure it is a standard tuple cache
+            if isinstance(past_kv, tuple):
+                k_cache, v_cache = past_kv
+                original_shape_k = k_cache.shape
+                original_shape_v = v_cache.shape
+                original_dtype = k_cache.dtype
+                
+                # 3. Compress and Reconstruct Keys (K)
+                flat_keys = k_cache.reshape(-1, self.head_dim).to(torch.float32)
+                reconstructed_keys, _ = self.bridge(flat_keys)
+                compressed_keys = reconstructed_keys.to(original_dtype).reshape(original_shape_k)
+                
+                # 4. Compress and Reconstruct Values (V)
+                flat_values = v_cache.reshape(-1, self.head_dim).to(torch.float32)
+                reconstructed_values, _ = self.bridge(flat_values)
+                compressed_values = reconstructed_values.to(original_dtype).reshape(original_shape_v)
+                
+                # 5. Rebuild the KV tuple and the output tuple
+                compressed_kv = (compressed_keys, compressed_values)
+                attn_outputs = (attn_outputs[0], attn_outputs[1], compressed_kv) + attn_outputs[3:]
+                
         return attn_outputs
