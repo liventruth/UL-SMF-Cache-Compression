@@ -51,6 +51,7 @@ class UL_SMF_Interceptor(nn.Module):
         self.original_attn = original_attention
         self.bridge = bridge
         self.head_dim = 128  # Default fallback
+        self._compression_verified = False  # One-time console audit flag
 
         if hasattr(original_attention, 'config'):
             self.config = original_attention.config
@@ -64,13 +65,22 @@ class UL_SMF_Interceptor(nn.Module):
         # 1. Execute original attention
         attn_outputs = self.original_attn(hidden_states, *args, **kwargs)
 
-        # 2. In HF, past_key_value is at index 2: (attn_output, attn_weights, past_key_value)
+        # 2. Extract past_key_value (Index 2 in Hugging Face attention outputs)
         if len(attn_outputs) > 2 and attn_outputs[2] is not None:
             past_kv = attn_outputs[2]
             
-            # Ensure it is a standard tuple cache
+            k_cache, v_cache = None, None
+            
+            # Ensure it is a standard tuple cache, not a modern HF DynamicCache object
             if isinstance(past_kv, tuple):
                 k_cache, v_cache = past_kv
+                
+            if k_cache is not None and v_cache is not None:
+                # Print physical proof to the console the first time this fires
+                if not self._compression_verified:
+                    print("\n[UL-SMF AUDIT] Interceptor active: Aegis-KV compressing BOTH Keys and Values.")
+                    self._compression_verified = True
+
                 original_shape_k = k_cache.shape
                 original_shape_v = v_cache.shape
                 original_dtype = k_cache.dtype
@@ -85,8 +95,14 @@ class UL_SMF_Interceptor(nn.Module):
                 reconstructed_values, _ = self.bridge(flat_values)
                 compressed_values = reconstructed_values.to(original_dtype).reshape(original_shape_v)
                 
-                # 5. Rebuild the KV tuple and the output tuple
+                # 5. Rebuild the KV tuple and output tuple
                 compressed_kv = (compressed_keys, compressed_values)
                 attn_outputs = (attn_outputs[0], attn_outputs[1], compressed_kv) + attn_outputs[3:]
+            else:
+                # Fail-safe warning if a non-tuple Cache object bypassed the system
+                if not self._compression_verified:
+                    print("\n[UL-SMF AUDIT] WARNING: Non-tuple Cache detected. Compression bypassed.")
+                    self._compression_verified = True
                 
         return attn_outputs
+        
