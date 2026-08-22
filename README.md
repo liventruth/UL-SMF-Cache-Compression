@@ -20,10 +20,10 @@ While the overarching orchestration framework and interfaces are open-source (AG
 
 ---
 
-## 📊 Phase 3 Empirical Audit: Semantic Fidelity (Live Pipeline)
-The architecture has been rigorously benchmarked on `unsloth/llama-3-8b-Instruct-bnb-4bit` using autoregressive decoding to prove that extreme latent compression (128D ➔ 16D) does not destroy high-frequency spatial or semantic memory. 
+## 📊 Phase 3 & 4 Empirical Audit: Semantic Fidelity & Physical Efficiency
+Rigorously benchmarked on `unsloth/llama-3-8b-Instruct-bnb-4bit` using autoregressive decoding via a custom native `LatentDynamicCache` class.
 
-### Multi-Needle Context Retrieval
+### 1. Multi-Needle Context Retrieval (Semantic Fidelity)
 Testing the model's ability to maintain complex, overlapping semantic relationships across a massive context window while the KV cache is actively compressed in-place.
 
 | Metric | Result |
@@ -35,18 +35,18 @@ Testing the model's ability to maintain complex, overlapping semantic relationsh
 | **Target 3** (`Dr. Aris Thorne`) | ✅ `[FOUND]` |
 | **Overall Fidelity** | **100% (Flawless Retrieval)** |
 
-### Compute Overhead (Throughput)
-Evaluating the computational cost of continuous latent encoding and decoding on every forward pass.
+### 2. Physical Hardware Profiling (LatentDynamicCache Active)
+Evaluating real GPU memory reduction and compute throughput using the native `LatentDynamicCache` integration with direct encoder/decoder submodule routing.
 
-| Execution Mode | Generation Speed | Delta |
-| :--- | :--- | :--- |
-| **Baseline (Raw Model)** | 3.08 tokens/sec | --- |
-| **UL-SMF Active** | 3.03 tokens/sec | **-0.05 t/s (~1.6% overhead)** |
+| Metric | Baseline (Raw Model) | UL-SMF Latent Cache | Improvement / Delta |
+| :--- | :--- | :--- | :--- |
+| **KV Cache Footprint** | 1317.52 MB | 1124.34 MB | **-14.66% VRAM Reduction** (193.18 MB saved) |
+| **Generation Speed** | 3.03 tokens/sec | 2.93 tokens/sec | **-0.10 t/s (~3% overhead)** |
 
 ---
 
-## 📉 Phase 2 Isolated Audit: Physical Hardware Efficiency 
-Isolated tensor profiling on CUDA hardware verifying the mathematical footprint reduction achieved by the Aegis-KV GLRP v2.0 compression algorithms.
+## 📉 Isolated Theoretical Efficiency (GLRP v2.0)
+Isolated tensor profiling on CUDA hardware verifying the mathematical footprint reduction ceiling achieved by the Aegis-KV algorithms.
 
 | Metric | Raw FP32 Cache | UL-SMF 16D Latent | Improvement |
 | :--- | :--- | :--- | :--- |
