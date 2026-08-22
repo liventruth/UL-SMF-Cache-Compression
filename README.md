@@ -20,10 +20,9 @@ While the overarching orchestration framework and interfaces are open-source (AG
 
 ---
 
-## 📊 Phase 3 & 4 Empirical Audit: Semantic Fidelity & Physical Efficiency
+## 📊 Live GPU Benchmarks: Fidelity & Physical Efficiency
 Rigorously benchmarked on `unsloth/llama-3-8b-Instruct-bnb-4bit` using autoregressive decoding via a custom native `LatentDynamicCache` class.
-
-### 1. Multi-Needle Context Retrieval (Semantic Fidelity)
+### 🎯 Semantic Fidelity: Multi-Needle Context Retrieval
 Testing the model's ability to maintain complex, overlapping semantic relationships across a massive context window while the KV cache is actively compressed in-place.
 
 | Metric | Result |
@@ -35,7 +34,7 @@ Testing the model's ability to maintain complex, overlapping semantic relationsh
 | **Target 3** (`Dr. Aris Thorne`) | ✅ `[FOUND]` |
 | **Overall Fidelity** | **100% (Flawless Retrieval)** |
 
-### 2. Physical Hardware Profiling (LatentDynamicCache Active)
+### 📉 Physical Hardware Profiling: Real VRAM Reduction
 Evaluating real GPU memory reduction and compute throughput using the native `LatentDynamicCache` integration with direct encoder/decoder submodule routing.
 
 | Metric | Baseline (Raw Model) | UL-SMF Latent Cache | Improvement / Delta |
@@ -44,9 +43,8 @@ Evaluating real GPU memory reduction and compute throughput using the native `La
 | **Generation Speed** | 3.03 tokens/sec | 2.93 tokens/sec | **-0.10 t/s (~3% overhead)** |
 
 ---
-
-## 📉 Isolated Theoretical Efficiency (GLRP v2.0)
-Isolated tensor profiling on CUDA hardware verifying the mathematical footprint reduction ceiling achieved by the Aegis-KV algorithms.
+## 🧮 Mathematical Ceiling: Isolated Theoretical Efficiency
+Isolated tensor profiling on CUDA hardware verifying the mathematical footprint reduction ceiling achieved by the Aegis-KV algorithms (GLRP v2.0).
 
 | Metric | Raw FP32 Cache | UL-SMF 16D Latent | Improvement |
 | :--- | :--- | :--- | :--- |
