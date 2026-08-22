@@ -61,17 +61,6 @@ Net PPL Degradation     : +-0.0020
 ============================================================
 ```
 
-### Zero-Shot Task Evaluation (EleutherAI Harness)
-
-To validate that the model's reasoning and logic capabilities remain fully intact alongside the geometry preservation, the compressed fabric was evaluated using the standard EleutherAI LM Harness.
-
-| Metric | Uncompressed Baseline | UL-SMF Compressed | Performance Delta |
-| :--- | :--- | :--- | :--- |
-| **HellaSwag (Zero-Shot)** | 54.00% | 54.00% | **0.00%** |
-| **ARC-c (Zero-Shot)** | 50.00% | 50.00% | **0.00%** |
-| **WikiText-2 Perplexity** | 7.5979 | 7.5979 | **0.00** |
-
-**Conclusion:** The UL-SMF interceptor maintains identical zero-shot reasoning accuracy and semantic retention compared to the raw FP32 baseline, confirming that extreme KV-cache quantization does not induce physical hallucinations or logic degradation.
 
 ---
 
