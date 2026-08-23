@@ -79,7 +79,6 @@ To establish strict scientific boundaries for the **UL-SMF** manifold projection
 
 **Takeaway:** The empirical curve confirms that the **16D manifold** represents the optimal mathematical "knee" of the Pareto frontier—maximizing physical VRAM and bandwidth savings while tightly bounding semantic distortion.
 </details>
-```
 
 ---
 
