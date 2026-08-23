@@ -61,6 +61,7 @@ Uncompressed Baseline   : 6.1160
 UL-SMF Compressed PPL   : 6.1140
 Net PPL Degradation     : +-0.0020
 ============================================================
+```
 
 ---
 
